@@ -157,3 +157,55 @@ POST /api/transactions
 
 Monthly summary
 GET /api/summary?userId=1&month=2026-01
+
+
+
+🐳 Docker Setup (Recommended – Easiest Way to Run)
+
+This project includes a Docker-based PostgreSQL setup so you can run the database without installing PostgreSQL locally.
+
+Requirements
+
+Docker Desktop
+
+Start PostgreSQL using Docker
+
+From the project root:
+
+docker compose up -d
+
+
+This will start PostgreSQL with:
+
+Database: mywalletDB
+
+Username: expense_user
+
+Password: test
+
+Port: 5432
+
+Verify container is running
+docker ps
+
+
+You should see:
+
+mywallet-postgres
+
+Run the Spring Boot application
+mvn spring-boot:run
+
+
+The backend will start at:
+
+http://localhost:8080
+
+Reset the database (optional)
+
+To wipe and recreate the database:
+
+docker compose down -v
+docker compose up -d
+
+
