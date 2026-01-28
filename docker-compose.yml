@@ -1,0 +1,10 @@
+services:
+  db:
+    image: postgres:16
+    container_name: mywallet-postgres
+    environment:
+      POSTGRES_DB: mywalletDB
+      POSTGRES_USER: expense_user
+      POSTGRES_PASSWORD: test
+    ports:
+      - "5432:5432"

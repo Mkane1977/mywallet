@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # MyWallet – Budgeting App (Spring Boot + PostgreSQL)
 
 MyWallet is a simple full-stack budgeting application that allows users to track income and expenses, organize transactions into categories, and view monthly financial summaries.
@@ -209,3 +210,30 @@ docker compose down -v
 docker compose up -d
 
 
+=======
+# MyWallet – Local Development (IntelliJ Setup Guide)
+
+This document explains how to run and develop the MyWallet backend locally using IntelliJ IDEA.
+
+---
+
+## 🛠 Requirements
+
+- IntelliJ IDEA (Community or Ultimate)
+- Java 17+
+- Maven
+- Docker Desktop
+
+---
+
+## 🐳 Database Setup (Docker – Recommended)
+
+This project uses Docker to run PostgreSQL locally.
+
+### Start PostgreSQL
+
+From the project root:
+
+```bash
+docker compose up -d
+>>>>>>> Stashed changes
