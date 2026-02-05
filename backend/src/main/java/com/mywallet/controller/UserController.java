@@ -29,5 +29,8 @@ public class UserController {
     public User getByEmail(@RequestParam String email) {
         return service.getByEmail(email);
     }
-}
 
+
+
+
+}
