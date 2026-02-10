@@ -1,8 +1,8 @@
 package com.mywallet.service.impl;
 
 
-
-import com.mywallet.model.User;
+import com.mywallet.exception.UserNotFoundException;
+import com.mywallet.domain.User;
 import com.mywallet.repository.UserRepository;
 import com.mywallet.service.UserService;
 import org.springframework.stereotype.Service;
@@ -25,6 +25,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getByEmail(String email) {
         return repo.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(email));
     }
 }

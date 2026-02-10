@@ -1,4 +1,4 @@
-package com.mywallet.model;
+package com.mywallet.domain;
 
 
 import jakarta.persistence.*;

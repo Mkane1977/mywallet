@@ -2,7 +2,7 @@ package com.mywallet.controller;
 
 
 
-import com.mywallet.model.User;
+import com.mywallet.domain.User;
 import com.mywallet.service.UserService;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,6 +1,6 @@
 package com.mywallet.repository;
 
-import com.mywallet.model.User;
+import com.mywallet.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
