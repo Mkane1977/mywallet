@@ -1,10 +1,17 @@
 services:
   db:
     image: postgres:16
-    container_name: mywallet-postgres
+    #container_name: mywallet-postgres
     environment:
       POSTGRES_DB: mywalletDB
       POSTGRES_USER: expense_user
       POSTGRES_PASSWORD: test
     ports:
       - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+        postgres_data:
+
+
