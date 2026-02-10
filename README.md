@@ -1,4 +1,4 @@
-<<<<<<< Updated upstream
+
 # MyWallet – Budgeting App (Spring Boot + PostgreSQL)
 
 MyWallet is a simple full-stack budgeting application that allows users to track income and expenses, organize transactions into categories, and view monthly financial summaries.
