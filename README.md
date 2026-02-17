@@ -7,7 +7,7 @@ This project follows clean layered architecture patterns used in real-world back
 
 ---
 
-## 🚀 Current Features (Milestone – Auth + Core Setup)
+##  Current Features (Milestone – Auth + Core Setup)
 
 ### Authentication
 - Register with email, name, password
@@ -25,7 +25,7 @@ This project follows clean layered architecture patterns used in real-world back
 
 ---
 
-## 🏗 Architecture
+##  Architecture
 
 Frontend (planned)
 ↓
@@ -35,7 +35,7 @@ PostgreSQL Database
 
 ---
 
-## 🧰 Tech Stack
+##  Tech Stack
 
 - Java 17+
 - Spring Boot
@@ -45,24 +45,46 @@ PostgreSQL Database
 - Maven
 - Docker
 - Swagger (springdoc-openapi)
-
+- BCrypt
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
-mywallet/
-├── backend/
-│   ├── src/main/java/com/mywallet
-│   │   ├── controller
-│   │   ├── service
-│   │   ├── repository
-│   │   ├── domain
-│   │   └── dto
-│   ├── src/main/resources/db/migration
-│   └── pom.xml
-├── docker-compose.yml
-└── README.md
+backend/
+├── src/main/java/com/mywallet
+│   ├── config
+│   │   └── CorsConfig
+│   ├── controller
+│   │   ├── AuthController
+│   │   └── RootController
+│   ├── domain
+│   │   └── User
+│   ├── dto
+│   │   └── auth
+│   │       ├── RegisterRequest
+│   │       ├── LoginRequest
+│   │       └── AuthResponse
+│   ├── exception
+│   │   └── GlobalExceptionHandler
+│   ├── repository
+│   │   └── UserRepository
+│   ├── service
+│   │   ├── auth
+│   │   │   └── AuthService
+│   │   └── impl
+│   │       └── AuthServiceImpl
+│   └── AppApplication
+│
+├── src/main/resources
+│   ├── application.properties
+│   └── db/migration
+│       ├── V1__create_users.sql
+│       └── V4_add_password_hash_to_users.sql
+│
+├── pom.xml
+└── docker-compose.yml
+
 ```
 
 ---
@@ -108,7 +130,7 @@ http://localhost:8080
 
 ---
 
-# 📖 Swagger API Docs
+#  Swagger API Docs
 
 Once running, open:
 
@@ -124,7 +146,7 @@ http://localhost:8080/v3/api-docs
 
 ---
 
-# 🔐 Authentication Endpoints
+#  Authentication Endpoints
 
 ## Register
 
@@ -153,7 +175,7 @@ Accounts are enabled immediately upon registration (email verification not imple
 
 ---
 
-# 🧪 Development Notes
+#  Development Notes
 
 - Flyway manages all schema migrations.
 - Do NOT edit old migration files.
@@ -162,7 +184,7 @@ Accounts are enabled immediately upon registration (email verification not imple
 
 ---
 
-# 🔄 Reset Database (Development Only)
+#  Reset Database (Development Only)
 
 To wipe the database:
 
@@ -173,12 +195,11 @@ docker compose up -d
 
 ---
 
-# 📌 Milestone Status (Feb 20)
+#  Milestone Status (Feb 20)
 
 - Backend structure complete
 - Postgres + Flyway working
 - Swagger API contract defined
 - DTOs + validation implemented
 - Auth-lite complete
-
 
