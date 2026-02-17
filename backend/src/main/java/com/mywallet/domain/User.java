@@ -14,17 +14,23 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    private String username;
+    @Column(nullable = false)
+    private String name;
+
+
+    //private String username;
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
 
     @Column(nullable = false)
     private Boolean enabled = true;
 
     public User() {}
 
-    public User(String email, String username) {
+    public User(String email, String name) {
 
         this.email = email;
-        this.username = username;
+        this.name = this.name;
     }
 
     // getters and setters
@@ -34,9 +40,15 @@ public class User {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    public String getName() { return name; }
+    public void setName(String username) { this.name = username; }
 
     public Boolean getEnabled() { return enabled; }
     public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+
+
+
 }
