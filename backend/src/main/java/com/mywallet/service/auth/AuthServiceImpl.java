@@ -1,8 +1,7 @@
-package com.mywallet.service.impl;
+package com.mywallet.service.auth;
 
 import com.mywallet.domain.User;
 import com.mywallet.repository.UserRepository;
-import com.mywallet.service.auth.AuthService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +25,7 @@ public class AuthServiceImpl implements AuthService {
         u.setEmail(email);
         u.setName(name);
         u.setPasswordHash(encoder.encode(rawPassword));
+        u.setEnabled(true);
         return repo.save(u);
     }
 
