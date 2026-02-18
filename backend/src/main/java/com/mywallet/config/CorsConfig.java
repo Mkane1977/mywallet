@@ -16,7 +16,7 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
 
                 registry.addMapping("/api/**") // apply to all API endpoints
-                        .allowedOrigins("http://localhost:3000") // React frontend
+                        .allowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*") // local frontend dev servers
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
