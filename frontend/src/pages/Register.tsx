@@ -1,27 +1,28 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Login() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default function Register() {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     setError("");
     setLoading(true);
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, name, password }),
       });
 
       if (!response.ok) {
-        let message = `Login failed (${response.status})`;
+        let message = `Registration failed (${response.status})`;
         try {
           const err = await response.json();
           if (err?.message) message = `${message}: ${err.message}`;
@@ -29,12 +30,12 @@ export default function Login() {
         throw new Error(message);
       }
 
-      const user = await response.json();
-      localStorage.setItem("userId", user.id);
-      navigate("/dashboard");
+      navigate("/login");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to authenticate. Please try again.",
+        err instanceof Error ?
+          err.message
+        : "Failed to register. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -45,7 +46,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-blue-50">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-          MyWallet
+          Create Account
         </h1>
 
         {error && (
@@ -63,6 +64,13 @@ export default function Login() {
             className="w-full p-3 border border-gray-300 rounded-lg"
           />
           <input
+            type="name"
+            placeholder="Username"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg"
+          />
+          <input
             type="password"
             placeholder="Password"
             value={password}
@@ -74,13 +82,13 @@ export default function Login() {
             disabled={loading}
             className="w-full bg-blue-500 text-white p-3 rounded-lg font-semibold hover:bg-blue-600 disabled:opacity-60"
           >
-            {loading ? "Logging in..." : "Log In"}
+            {loading ? "Registering..." : "Register"}
           </button>
           <button
-            onClick={() => navigate("/register")}
+            onClick={() => navigate("/")}
             className="w-full text-blue-500 font-semibold hover:underline"
           >
-            Register
+            Back to Login
           </button>
         </div>
       </div>
