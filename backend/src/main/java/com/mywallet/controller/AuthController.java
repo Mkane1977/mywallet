@@ -18,7 +18,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public AuthResponse signup(@Valid @RequestBody RegisterRequest req) {
+    public AuthResponse register(@Valid @RequestBody RegisterRequest req) {
         User u = auth.register(req.email, req.name, req.password);
         return new AuthResponse(u.getId(), u.getEmail(), u.getName());
     }

@@ -1,0 +1,65 @@
+package com.mywallet.controller;
+
+import com.mywallet.dto.transaction.*;
+import com.mywallet.domain.TransactionType;
+import com.mywallet.service.TransactionService;
+import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
+import java.time.LocalDate;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/transactions")
+public class TransactionController {
+
+    private final TransactionService service;
+
+    public TransactionController(TransactionService service) {
+        this.service = service;
+    }
+
+
+    @GetMapping
+    public List<TransactionResponse> listMine(
+            @RequestHeader("X-USER-ID") Long userId,
+            @RequestParam(required = false) TransactionType type,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
+    ) {
+        return service.listMine(userId, type, categoryId, start, end);
+    }
+
+    @GetMapping("/{id}")
+    public TransactionResponse getMine(@RequestHeader("X-USER-ID") Long userId, @PathVariable Long id) {
+        return service.getMine(userId, id);
+    }
+
+    @PostMapping
+    public ResponseEntity<TransactionResponse> createMine(
+            @RequestHeader("X-USER-ID") Long userId,
+            @Valid @RequestBody TransactionCreateRequest req
+    ) {
+        TransactionResponse created = service.createMine(userId, req);
+        return ResponseEntity.created(URI.create("/api/transactions/" + created.id)).body(created);
+    }
+
+    @PutMapping("/{id}")
+    public TransactionResponse updateMine(
+            @RequestHeader("X-USER-ID") Long userId,
+            @PathVariable Long id,
+            @Valid @RequestBody TransactionUpdateRequest req
+    ) {
+        return service.updateMine(userId, id, req);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteMine(@RequestHeader("X-USER-ID") Long userId, @PathVariable Long id) {
+        service.deleteMine(userId, id);
+        return ResponseEntity.noContent().build();
+    }
+}

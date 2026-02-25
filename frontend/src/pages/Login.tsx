@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png"; // <-- change if needed
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -8,15 +9,14 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async () => {
-    setError("");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
     setLoading(true);
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
@@ -33,57 +33,59 @@ export default function Login() {
       localStorage.setItem("userId", user.id);
       navigate("/dashboard");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to authenticate. Please try again.",
-      );
+      setError(err instanceof Error ? err.message : "Failed to authenticate. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-          MyWallet
-        </h1>
-
-        {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
-            {error}
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+          <div className="flex flex-col items-center mb-6">
+            <img src={logo} alt="MyWallet Logo" className="w-20 h-20 object-contain mb-2" />
+            <h1 className="text-3xl font-bold text-center text-gray-800">MyWallet</h1>
+            <p className="text-gray-500 mt-1">Login</p>
           </div>
-        )}
 
-        <div className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg"
-          />
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="w-full bg-blue-500 text-white p-3 rounded-lg font-semibold hover:bg-blue-600 disabled:opacity-60"
-          >
-            {loading ? "Logging in..." : "Log In"}
-          </button>
-          <button
-            onClick={() => navigate("/register")}
-            className="w-full text-blue-500 font-semibold hover:underline"
-          >
-            Register
-          </button>
+          {error && (
+              <div className="bg-green-100 text-green-700 p-3 rounded mb-4">
+                {error}
+              </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+            <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+
+            <button
+                type={"submit"}
+                disabled={loading}
+                className="w-full bg-green-600 text-white p-3 rounded-full font-semibold hover:bg-green-700 disabled:opacity-60 transition"
+            >
+              {loading ? "Logging in..." : "Log In"}
+            </button>
+
+            <button
+                onClick={() => navigate("/register")}
+                className="w-full text-green-600 font-semibold hover:underline"
+            >
+              Register
+            </button>
+          </form>
         </div>
       </div>
-    </div>
   );
 }

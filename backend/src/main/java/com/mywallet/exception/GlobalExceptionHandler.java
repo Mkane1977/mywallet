@@ -6,6 +6,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+
+
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -39,11 +42,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleConstraint(DataIntegrityViolationException ex) {
+
+        String msg = "Data constraint violation";
+
+        // A simple, safe generic message without reading ex details
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("status", 400);
-        body.put("error", "Bad Request");
-        body.put("message", "Email already registered");
-        return ResponseEntity.badRequest().body(body);
+        body.put("status", 409);
+        body.put("error", "Conflict");
+        body.put("message", msg);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<Map<String, Object>> handleApi(ApiException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", ex.getStatus());
+        body.put("error", HttpStatus.valueOf(ex.getStatus()).getReasonPhrase());
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(ex.getStatus()).body(body);
     }
 
 }

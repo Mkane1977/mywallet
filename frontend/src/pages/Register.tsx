@@ -45,12 +45,12 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-50">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
+        <h1 className="text-3xl font-bold text-center text-black-300 mb-8">
           Create Account
         </h1>
 
         {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+          <div className="bg-green-100 text-green-700 p-3 rounded mb-4">
             {error}
           </div>
         )}
@@ -61,32 +61,32 @@ export default function Register() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           />
           <input
             type="name"
             placeholder="Username"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           />
           <input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           />
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full bg-blue-500 text-white p-3 rounded-lg font-semibold hover:bg-blue-600 disabled:opacity-60"
+            className="w-full bg-green-600 text-white p-3 rounded-full font-semibold hover:bg-green-700 disabled:opacity-60 transition"
           >
             {loading ? "Registering..." : "Register"}
           </button>
           <button
             onClick={() => navigate("/")}
-            className="w-full text-blue-500 font-semibold hover:underline"
+            className="w-full text-green-500 font-semibold hover:underline"
           >
             Back to Login
           </button>

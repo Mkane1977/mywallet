@@ -10,28 +10,32 @@ public class User {
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
     private String name;
 
-
-    //private String username;
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
     @Column(nullable = false)
     private Boolean enabled = true;
 
+
+
+
     public User() {}
 
     public User(String email, String name) {
 
         this.email = email;
-        this.name = this.name;
+        this.name = name;
     }
+
+
+
+
 
     // getters and setters
 
