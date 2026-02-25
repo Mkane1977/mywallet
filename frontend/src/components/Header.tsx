@@ -14,7 +14,7 @@ export function Header() {
     };
 
     const handleLogout = () => {
-        // Adjust these keys to match what you store on login
+        // Adjust these keys to match what you store on login ( for JWT)
         localStorage.removeItem("token");
         localStorage.removeItem("user");
 
