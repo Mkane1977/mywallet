@@ -17,7 +17,7 @@ public class TransactionCreateRequest {
     @NotNull
     public LocalDate date;
 
-    @NotBlank
+
     @Size(max = 120)
     public String description;
 

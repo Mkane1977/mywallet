@@ -1,6 +1,9 @@
 package com.mywallet.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 import java.time.Instant;
 
 @Entity
@@ -30,6 +33,14 @@ public class Category {
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
+    @Size(max = 20)
+    @NotNull
+    @Column(name = "type", nullable = false, length = 20)
+    private String type;
+    @NotNull
+    @org.hibernate.annotations.ColumnDefault("false")
+    @Column(name = "archived", nullable = false)
+    private Boolean archived;
 
     public Category() {}
 
@@ -46,4 +57,20 @@ public class Category {
     public void setUser(User user) { this.user = user; }
 
     public Instant getCreatedAt() { return createdAt; }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Boolean getArchived() {
+        return archived;
+    }
+
+    public void setArchived(Boolean archived) {
+        this.archived = archived;
+    }
 }
