@@ -63,12 +63,19 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
           and (:start is null or t.date >= :start)
           and (:end is null or t.date <= :end)
     """)
-    BigDecimal sumAmountByType(Long userId, TransactionType type, LocalDate start, LocalDate end);
-
+    BigDecimal sumAmountByType(
+            @Param("userId") Long userId,
+            @Param("type") TransactionType type,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end
+    );
     // Spending by category  for chart
+    @SuppressWarnings("JpaQlInspection")
     @Query("""
-    select new com.mywallet.dto.dashboard.CategorySpendingResponse(
-        c.id, c.name, coalesce(sum(t.amount), 0.00)
+    select new CategorySpendingResponse(
+        c.id,
+        c.name,
+        coalesce(sum(t.amount), java.math.BigDecimal.ZERO)
     )
     from Transaction t
     join t.category c
@@ -77,13 +84,15 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
       and (:start is null or t.date >= :start)
       and (:end is null or t.date <= :end)
     group by c.id, c.name
-    order by coalesce(sum(t.amount), 0.00) desc
+    order by coalesce(sum(t.amount), java.math.BigDecimal.ZERO) desc
 """)
     List<CategorySpendingResponse> spendingByCategory(
             @Param("userId") Long userId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end
     );
+
+
     // Recent transactions list
     @Query("""
     select new com.mywallet.dto.dashboard.RecentTransactionResponse(
