@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png"; // <-- change if needed
 
-export default function Login() {
+export function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -16,8 +16,8 @@ export default function Login() {
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({email, password}),
       });
 
       if (!response.ok) {
@@ -25,12 +25,21 @@ export default function Login() {
         try {
           const err = await response.json();
           if (err?.message) message = `${message}: ${err.message}`;
-        } catch {}
+        } catch {
+        }
         throw new Error(message);
       }
 
       const user = await response.json();
-      localStorage.setItem("userId", user.id);
+
+// try multiple possible fields (id vs userId)
+      const id = user?.id ?? user?.userId ?? user?.data?.id ?? user?.data?.userId;
+
+      if (id === undefined || id === null) {
+        throw new Error("Login succeeded, but no user id was returned by the API.");
+      }
+
+      localStorage.setItem("userId", String(id));
       navigate("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to authenticate. Please try again.");
@@ -43,7 +52,7 @@ export default function Login() {
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
           <div className="flex flex-col items-center mb-6">
-            <img src={logo} alt="MyWallet Logo" className="w-20 h-20 object-contain mb-2" />
+            <img src={logo} alt="MyWallet Logo" className="w-20 h-20 object-contain mb-2"/>
             <h1 className="text-3xl font-bold text-center text-gray-800">MyWallet</h1>
             <p className="text-gray-500 mt-1">Login</p>
           </div>

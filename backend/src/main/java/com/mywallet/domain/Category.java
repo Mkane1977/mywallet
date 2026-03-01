@@ -40,7 +40,7 @@ public class Category {
     @NotNull
     @org.hibernate.annotations.ColumnDefault("false")
     @Column(name = "archived", nullable = false)
-    private Boolean archived;
+    private Boolean archived= false;
 
     public Category() {}
 

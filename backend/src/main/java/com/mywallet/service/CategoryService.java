@@ -24,7 +24,7 @@ public class CategoryService {
     public List<CategoryResponse> listMine(Long userId) {
         User me = currentUser.requireUser(userId);
         return categories.findAllByUserIdOrderByNameAsc(me.getId()).stream()
-                .map(c -> new CategoryResponse(c.getId(), c.getName(), c.getDescription()))
+                .map(c -> new CategoryResponse(c.getId(), c.getName(), c.getDescription(),c.getType()))
                 .toList();
     }
 
@@ -32,7 +32,7 @@ public class CategoryService {
         User me = currentUser.requireUser(userId);
         Category c = categories.findByIdAndUserId(id, me.getId())
                 .orElseThrow(() -> new ApiException(404, "Category not found"));
-        return new CategoryResponse(c.getId(), c.getName(), c.getDescription());
+        return new CategoryResponse(c.getId(), c.getName(), c.getDescription(),c.getType());
     }
 
     @Transactional
@@ -47,9 +47,10 @@ public class CategoryService {
         c.setName(req.name.trim());
         c.setDescription(req.description);
         c.setUser(me);
-
+        c.setType("EXPENSE");
+        c.setArchived(false);
         Category saved = categories.save(c);
-        return new CategoryResponse(saved.getId(), saved.getName(), saved.getDescription());
+        return new CategoryResponse(saved.getId(), saved.getName(), saved.getDescription(),saved.getType());
     }
 
     @Transactional
@@ -67,7 +68,7 @@ public class CategoryService {
         c.setName(req.name.trim());
         c.setDescription(req.description);
 
-        return new CategoryResponse(c.getId(), c.getName(), c.getDescription());
+        return new CategoryResponse(c.getId(), c.getName(), c.getDescription(),c.getType());
     }
 
     @Transactional

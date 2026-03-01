@@ -72,7 +72,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     // Spending by category  for chart
     @SuppressWarnings("JpaQlInspection")
     @Query("""
-    select new CategorySpendingResponse(
+    select new com.mywallet.dto.dashboard.CategorySpendingResponse(
         c.id,
         c.name,
         coalesce(sum(t.amount), java.math.BigDecimal.ZERO)
