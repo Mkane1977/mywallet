@@ -1,9 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Categories } from "./pages/Categories";
-import { Dashboard } from "./pages/Dashboard";
+import Dashboard from "./pages/Dashboard";
 import {Login} from "./pages/Login";
 import Register from "./pages/Register";
-import { Transactions } from "./pages/Transactions";
+import Transactions from "./pages/Transactions";
 import {Header} from "./components/Header";
 
 
@@ -11,11 +11,11 @@ const App = () => {
   return (
       <BrowserRouter>
         <Routes>
-          {/* Public routes (no header) */}
+          {/* Public routes no header */}
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* App routes (with header) */}
+          {/* App routes with header */}
           <Route
               path="/dashboard"
               element={

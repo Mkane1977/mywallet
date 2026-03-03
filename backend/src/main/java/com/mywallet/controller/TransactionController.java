@@ -1,7 +1,8 @@
 package com.mywallet.controller;
 
-import com.mywallet.dto.transaction.*;
 import com.mywallet.domain.TransactionType;
+import com.mywallet.dto.dashboard.RecentTransactionResponse;
+import com.mywallet.dto.transaction.*;
 import com.mywallet.service.TransactionService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -22,7 +23,6 @@ public class TransactionController {
         this.service = service;
     }
 
-
     @GetMapping
     public List<TransactionResponse> listMine(
             @RequestHeader("X-USER-ID") Long userId,
@@ -32,6 +32,21 @@ public class TransactionController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
     ) {
         return service.listMine(userId, type, categoryId, start, end);
+    }
+
+    //  Data source for recent transactions  -  sortable/filterable server-side
+    @GetMapping("/recent")
+    public List<RecentTransactionResponse> recent(
+            @RequestHeader("X-USER-ID") Long userId,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(required = false) TransactionType type,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            @RequestParam(defaultValue = "date") String sort,
+            @RequestParam(defaultValue = "desc") String dir
+    ) {
+        return service.recent(userId, limit, categoryId, type, start, end, sort, dir);
     }
 
     @GetMapping("/{id}")

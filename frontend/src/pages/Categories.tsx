@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type CategoryType = "INCOME" | "EXPENSE";
 
@@ -9,82 +9,164 @@ type Category = {
     type: CategoryType;
 };
 
+const DEFAULT_EXPENSE_SUGGESTIONS = [
+    "Rent",
+    "Utilities",
+    "Groceries",
+    "Dining Out",
+    "Gas",
+    "Insurance",
+    "Phone",
+    "Internet",
+    "Subscriptions",
+    "Entertainment",
+    "Medical",
+    "Travel",
+    "Childcare",
+    "Debt Payment",
+    "Savings",
+];
+
+const DEFAULT_INCOME_SUGGESTIONS = [
+    "Salary",
+    "Side Hustle",
+    "Bonus",
+    "Reimbursement",
+    "Interest",
+    "Gifts",
+    "Tax Refund",
+    "Rental Income",
+];
+
 async function readErrorMessage(response: Response) {
     try {
         const data = await response.json();
         if (data && typeof data.message === "string") return data.message;
         return `Request failed (${response.status})`;
     } catch {
-        try {
-            const text = await response.text();
-            return text || `Request failed (${response.status})`;
-        } catch {
-            return `Request failed (${response.status})`;
-        }
+        return `Request failed (${response.status})`;
     }
 }
 
 export function Categories() {
     const [categories, setCategories] = useState<Category[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const [isAddOpen, setIsAddOpen] = useState(false);
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [type, setType] = useState<CategoryType>("EXPENSE");
 
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [nameFocused, setNameFocused] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editName, setEditName] = useState("");
     const [editDescription, setEditDescription] = useState("");
     const [editType, setEditType] = useState<CategoryType>("EXPENSE");
 
-    const loadCategories = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const userId = localStorage.getItem("userId");
-            if (!userId) throw new Error("Missing user session. Please log in again.");
+    const pageBg = "min-h-screen bg-[#eef1ef]";
+    const titleText = "text-2xl font-semibold text-green-900";
+    const tableWrap =
+        "overflow-x-auto rounded-md border border-gray-200 bg-[#eef1ef]";
+    const tableBase = "min-w-full text-sm text-green-900";
+    const thBase = "px-6 py-4 font-semibold";
+    const tdBase = "px-6 py-5 align-middle";
+    const rowBase = "border-t border-gray-200";
 
-            const response = await fetch("/api/categories", {
+    const inputBase =
+        "w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-green-900 focus:outline-none focus:ring-2 focus:ring-green-200";
 
-                headers: { "X-USER-ID": userId },
-            });
+    const selectBase =
+        "rounded border border-gray-300 bg-white px-3 py-2 text-sm text-green-900 focus:outline-none focus:ring-2 focus:ring-green-200";
 
-            if (!response.ok) {
-                const msg = await readErrorMessage(response);
-                throw new Error(msg);
-            }
+    const greenBtn =
+        "rounded bg-green-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-900 disabled:cursor-not-allowed disabled:opacity-60";
 
-            const data: Category[] = await response.json();
-            setCategories(data);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to load categories.");
-        } finally {
-            setLoading(false);
-        }
-    };
+    const grayBtn =
+        "rounded border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60";
+
+    const actionBox =
+        "inline-flex overflow-hidden rounded border border-gray-300 bg-gray-200/60";
+    const actionBtn =
+        "px-5 py-2 text-sm font-medium text-green-900 transition hover:bg-gray-300/70 disabled:cursor-not-allowed disabled:opacity-60";
+    const divider = "w-px bg-gray-300";
 
     useEffect(() => {
-        void loadCategories();
+        const load = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const userId = localStorage.getItem("userId");
+                if (!userId) throw new Error("Missing user session.");
+
+                const response = await fetch("/api/categories", {
+                    headers: { "X-USER-ID": userId },
+                });
+
+                if (!response.ok) throw new Error(await readErrorMessage(response));
+
+                setCategories(await response.json());
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Failed to load.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        void load();
     }, []);
+
+    const existingNamesForType = useMemo(() => {
+        return categories
+            .filter((c) => c.type === type)
+            .map((c) => c.name.toLowerCase());
+    }, [categories, type]);
+
+    const isDuplicateName = useMemo(() => {
+        const n = name.trim().toLowerCase();
+        if (!n) return false;
+        return existingNamesForType.includes(n);
+    }, [name, existingNamesForType]);
+
+    const canSaveNew = useMemo(
+        () => name.trim().length > 0 && !isDuplicateName && !saving,
+        [name, isDuplicateName, saving]
+    );
+
+    const mergedSuggestions = useMemo(() => {
+        const defaults =
+            type === "EXPENSE"
+                ? DEFAULT_EXPENSE_SUGGESTIONS
+                : DEFAULT_INCOME_SUGGESTIONS;
+
+        const combined = [...categories.filter(c => c.type === type).map(c => c.name), ...defaults];
+        return Array.from(new Set(combined));
+    }, [categories, type]);
+
+    const filteredSuggestions = useMemo(() => {
+        const q = name.trim().toLowerCase();
+        if (!q) return mergedSuggestions.slice(0, 6);
+        if (q.length < 2) return [];
+        return mergedSuggestions
+            .filter((s) => s.toLowerCase().includes(q))
+            .slice(0, 8);
+    }, [name, mergedSuggestions]);
 
     const handleAdd = async (event: FormEvent) => {
         event.preventDefault();
-        setError(null);
 
-        const trimmedName = name.trim();
-        const trimmedDescription = description.trim();
-
-        if (!trimmedName) {
-            setError("Category name is required.");
+        if (isDuplicateName) {
+            setError(`"${name.trim()}" already exists for ${type}.`);
             return;
         }
 
         setSaving(true);
         try {
             const userId = localStorage.getItem("userId");
-            if (!userId) throw new Error("Missing user session. Please log in again.");
+            if (!userId) throw new Error("Missing user session.");
 
             const response = await fetch("/api/categories", {
                 method: "POST",
@@ -93,58 +175,33 @@ export function Categories() {
                     "X-USER-ID": userId,
                 },
                 body: JSON.stringify({
-                    name: trimmedName,
-                    description: trimmedDescription || null,
+                    name: name.trim(),
+                    description: description.trim() || null,
                     type,
                 }),
             });
 
-            if (!response.ok) {
-                const msg = await readErrorMessage(response);
-                throw new Error(msg);
-            }
+            if (!response.ok) throw new Error(await readErrorMessage(response));
 
+            setIsAddOpen(false);
             setName("");
             setDescription("");
             setType("EXPENSE");
-            await loadCategories();
+            setCategories(await (await fetch("/api/categories", {
+                headers: { "X-USER-ID": userId }
+            })).json());
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to add category.");
+            setError(err instanceof Error ? err.message : "Failed to add.");
         } finally {
             setSaving(false);
         }
     };
 
-    const startEdit = (category: Category) => {
-        setEditingId(category.id);
-        setEditName(category.name);
-        setEditDescription(category.description ?? "");
-        setEditType(category.type ?? "EXPENSE");
-        setError(null);
-    };
-
-    const cancelEdit = () => {
-        setEditingId(null);
-        setEditName("");
-        setEditDescription("");
-        setEditType("EXPENSE");
-    };
-
     const handleUpdate = async (id: number) => {
-        setError(null);
-
-        const trimmedName = editName.trim();
-        const trimmedDescription = editDescription.trim();
-
-        if (!trimmedName) {
-            setError("Category name is required.");
-            return;
-        }
-
         setSaving(true);
         try {
             const userId = localStorage.getItem("userId");
-            if (!userId) throw new Error("Missing user session. Please log in again.");
+            if (!userId) throw new Error("Missing user session.");
 
             const response = await fetch(`/api/categories/${id}`, {
                 method: "PUT",
@@ -153,215 +210,150 @@ export function Categories() {
                     "X-USER-ID": userId,
                 },
                 body: JSON.stringify({
-                    name: trimmedName,
-                    description: trimmedDescription || null,
+                    name: editName.trim(),
+                    description: editDescription.trim() || null,
                     type: editType,
                 }),
             });
 
-            if (!response.ok) {
-                const msg = await readErrorMessage(response);
-                throw new Error(msg);
-            }
+            if (!response.ok) throw new Error(await readErrorMessage(response));
 
-            cancelEdit();
-            await loadCategories();
+            setEditingId(null);
+            setCategories(await (await fetch("/api/categories", {
+                headers: { "X-USER-ID": userId }
+            })).json());
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to update category.");
+            setError(err instanceof Error ? err.message : "Failed to update.");
         } finally {
             setSaving(false);
         }
     };
 
     const handleDelete = async (id: number) => {
-        setError(null);
         if (!window.confirm("Delete this category?")) return;
 
         setSaving(true);
         try {
             const userId = localStorage.getItem("userId");
-            if (!userId) throw new Error("Missing user session. Please log in again.");
+            if (!userId) throw new Error("Missing user session.");
 
-            const response = await fetch(`/api/categories/${id}`, {
+            await fetch(`/api/categories/${id}`, {
                 method: "DELETE",
                 headers: { "X-USER-ID": userId },
             });
 
-            if (!response.ok) {
-                const msg = await readErrorMessage(response);
-                throw new Error(msg);
-            }
-
-            if (editingId === id) cancelEdit();
-            await loadCategories();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to delete category.");
+            setCategories(categories.filter((c) => c.id !== id));
         } finally {
             setSaving(false);
         }
     };
 
-    const greenBtn =
-        "cursor-pointer bg-green-600 px-3 py-2 text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60";
-    const greenLink =
-        "cursor-pointer text-green-700 transition hover:text-green-900 hover:underline disabled:cursor-not-allowed disabled:opacity-60";
-    const inputBase = "w-full border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-green-200";
-
     return (
-        <div className="min-h-screen bg-white">
-            <main className="mx-auto max-w-5xl p-4">
-                <h2 className="mb-4 text-2xl font-semibold text-gray-900">Categories</h2>
+        <div className={pageBg}>
+            <main className="mx-auto max-w-6xl px-6 py-10">
+                <div className="mb-6 flex items-center justify-between">
+                    <h2 className={titleText}>Manage Categories</h2>
+                    <button onClick={() => setIsAddOpen(true)} className={greenBtn}>
+                        + Add Category
+                    </button>
+                </div>
 
                 {error && (
-                    <div className="mb-3 border border-red-300 bg-red-50 p-2 text-red-700">{error}</div>
+                    <div className="mb-5 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {error}
+                    </div>
                 )}
 
-                <form onSubmit={handleAdd} className="mb-4 border p-3">
-                    <div className="grid gap-2 md:grid-cols-2">
-                        <input
-                            type="text"
-                            placeholder="Category name"
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
-                            className={inputBase}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Description (optional)"
-                            value={description}
-                            onChange={(event) => setDescription(event.target.value)}
-                            className={inputBase}
-                        />
-                    </div>
-
-                    {/* ✅ Right-aligned Type ABOVE the button */}
-                    <div className="mt-3 flex justify-end">
-                        <div className="flex flex-col items-end gap-2">
-                            <div className="flex items-center gap-2">
-                                <label className="text-sm font-medium text-gray-700">Type</label>
-                                <select
-                                    value={type}
-                                    onChange={(e) => setType(e.target.value as CategoryType)}
-                                    className="border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-green-200"
-                                >
-                                    <option value="EXPENSE">EXPENSE</option>
-                                    <option value="INCOME">INCOME</option>
-                                </select>
-                            </div>
-
-                            <button type="submit" disabled={saving} className={greenBtn}>
-                                {saving ? "Adding..." : "+ Add Category"}
-                            </button>
-                        </div>
-                    </div>
-                </form>
-
-                <div className="overflow-x-auto border">
-                    <table className="min-w-full text-sm">
-                        <thead className="border-b bg-green-50 text-left">
+                <div className={tableWrap}>
+                    <table className={tableBase}>
+                        <thead>
                         <tr>
-                            <th className="px-3 py-2">Category</th>
-                            <th className="px-3 py-2">Description</th>
-                            <th className="px-3 py-2">Type</th>
-                            <th className="px-3 py-2">Actions</th>
+                            <th className={thBase}>Category</th>
+                            <th className={thBase}>Description</th>
+                            <th className={thBase}>Type</th>
+                            <th className={thBase}>Actions</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {loading && (
-                            <tr>
-                                <td colSpan={4} className="px-3 py-4 text-center text-gray-600">
-                                    Loading categories...
-                                </td>
-                            </tr>
-                        )}
-                        {!loading && categories.length === 0 && (
-                            <tr>
-                                <td colSpan={4} className="px-3 py-4 text-center text-gray-600">
-                                    No categories yet.
-                                </td>
-                            </tr>
-                        )}
-                        {!loading &&
-                            categories.map((category) => (
-                                <tr key={category.id} className="border-b">
-                                    <td className="px-3 py-2">
-                                        {editingId === category.id ? (
+                        {categories.map((c) => {
+                            const isEditing = editingId === c.id;
+                            return (
+                                <tr key={c.id} className={rowBase}>
+                                    <td className={`${tdBase} font-semibold`}>
+                                        {isEditing ? (
                                             <input
-                                                type="text"
                                                 value={editName}
-                                                onChange={(event) => setEditName(event.target.value)}
+                                                onChange={(e) => setEditName(e.target.value)}
                                                 className={inputBase}
                                             />
                                         ) : (
-                                            category.name
+                                            c.name
                                         )}
                                     </td>
 
-                                    <td className="px-3 py-2 text-gray-700">
-                                        {editingId === category.id ? (
+                                    <td className={tdBase}>
+                                        {isEditing ? (
                                             <input
-                                                type="text"
                                                 value={editDescription}
-                                                onChange={(event) => setEditDescription(event.target.value)}
+                                                onChange={(e) => setEditDescription(e.target.value)}
                                                 className={inputBase}
                                             />
                                         ) : (
-                                            category.description || "-"
+                                            c.description || "-"
                                         )}
                                     </td>
 
-                                    <td className="px-3 py-2">
-                                        {editingId === category.id ? (
+                                    <td className={tdBase}>
+                                        {isEditing ? (
                                             <select
                                                 value={editType}
-                                                onChange={(e) => setEditType(e.target.value as CategoryType)}
-                                                className="border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-green-200"
+                                                onChange={(e) =>
+                                                    setEditType(e.target.value as CategoryType)
+                                                }
+                                                className={selectBase}
                                             >
                                                 <option value="EXPENSE">EXPENSE</option>
                                                 <option value="INCOME">INCOME</option>
                                             </select>
                                         ) : (
-                                            <span className="inline-flex rounded border border-green-200 bg-green-50 px-2 py-1 text-xs font-medium text-green-800">
-                          {category.type}
-                        </span>
+                                            c.type
                                         )}
                                     </td>
 
-                                    <td className="px-3 py-2">
-                                        {editingId === category.id ? (
-                                            <div className="flex gap-3">
+                                    <td className={tdBase}>
+                                        {isEditing ? (
+                                            <div className={actionBox}>
                                                 <button
-                                                    type="button"
-                                                    disabled={saving}
-                                                    onClick={() => void handleUpdate(category.id)}
-                                                    className={greenLink}
+                                                    onClick={() => handleUpdate(c.id)}
+                                                    className={actionBtn}
                                                 >
                                                     Save
                                                 </button>
+                                                <div className={divider} />
                                                 <button
-                                                    type="button"
-                                                    disabled={saving}
-                                                    onClick={cancelEdit}
-                                                    className={greenLink}
+                                                    onClick={() => setEditingId(null)}
+                                                    className={actionBtn}
                                                 >
                                                     Cancel
                                                 </button>
                                             </div>
                                         ) : (
-                                            <div className="flex gap-3">
+                                            <div className={actionBox}>
                                                 <button
-                                                    type="button"
-                                                    disabled={saving}
-                                                    onClick={() => startEdit(category)}
-                                                    className={greenLink}
+                                                    onClick={() => {
+                                                        setEditingId(c.id);
+                                                        setEditName(c.name);
+                                                        setEditDescription(c.description ?? "");
+                                                        setEditType(c.type);
+                                                    }}
+                                                    className={actionBtn}
                                                 >
                                                     Edit
                                                 </button>
+                                                <div className={divider} />
                                                 <button
-                                                    type="button"
-                                                    disabled={saving}
-                                                    onClick={() => void handleDelete(category.id)}
-                                                    className="cursor-pointer text-red-600 transition hover:text-red-800 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+                                                    onClick={() => handleDelete(c.id)}
+                                                    className={actionBtn}
                                                 >
                                                     Delete
                                                 </button>
@@ -369,10 +361,112 @@ export function Categories() {
                                         )}
                                     </td>
                                 </tr>
-                            ))}
+                            );
+                        })}
                         </tbody>
                     </table>
                 </div>
+
+                {isAddOpen && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+                        onClick={() => setIsAddOpen(false)}
+                    >
+                        <div
+                            className="w-full max-w-md rounded-xl bg-[#eef1ef] p-4 shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="rounded-lg border-4 border-green-800 bg-white p-6">
+                                <h3 className="mb-4 text-xl font-semibold text-green-900">
+                                    Add Category
+                                </h3>
+
+                                <form onSubmit={handleAdd}>
+                                    <div className="mb-4 flex gap-6 text-green-900">
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                checked={type === "EXPENSE"}
+                                                onChange={() => setType("EXPENSE")}
+                                            />{" "}
+                                            Expense
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                checked={type === "INCOME"}
+                                                onChange={() => setType("INCOME")}
+                                            />{" "}
+                                            Income
+                                        </label>
+                                    </div>
+
+                                    <div className="relative mb-3">
+                                        <input
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            onFocus={() => setNameFocused(true)}
+                                            onBlur={() =>
+                                                setTimeout(() => setNameFocused(false), 120)
+                                            }
+                                            placeholder="Category Name"
+                                            className={inputBase}
+                                        />
+
+                                        {nameFocused && filteredSuggestions.length > 0 && (
+                                            <div className="absolute z-50 mt-1 w-full rounded border border-gray-300 bg-white shadow-lg">
+                                                {filteredSuggestions.map((s) => (
+                                                    <button
+                                                        key={s}
+                                                        type="button"
+                                                        onMouseDown={(e) => {
+                                                            e.preventDefault();
+                                                            setName(s);
+                                                        }}
+                                                        className="block w-full px-3 py-2 text-left text-sm text-green-900 hover:bg-gray-100"
+                                                    >
+                                                        {s}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {isDuplicateName && (
+                                            <div className="mt-2 rounded border border-yellow-200 bg-yellow-50 px-3 py-2 text-sm text-yellow-900">
+                                                This category already exists for {type}.
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <input
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Description (Optional)"
+                                        className={`${inputBase} mb-5`}
+                                    />
+
+                                    <div className="flex justify-end gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsAddOpen(false)}
+                                            className={grayBtn}
+                                        >
+                                            Cancel
+                                        </button>
+
+                                        <button
+                                            type="submit"
+                                            disabled={!canSaveNew}
+                                            className={greenBtn}
+                                        >
+                                            {saving ? "Saving..." : "Save Category"}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );

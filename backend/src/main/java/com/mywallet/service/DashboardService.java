@@ -23,16 +23,41 @@ public class DashboardService {
 
     public DashboardSummaryResponse getSummary(Long userId, LocalDate start, LocalDate end, int recentLimit) {
 
-        BigDecimal totalIncome = txRepo.sumAmountByType(userId, TransactionType.INCOME, start, end);
-        BigDecimal totalExpenses = txRepo.sumAmountByType(userId, TransactionType.EXPENSE, start, end);
+        boolean hasRange = (start != null && end != null);
 
-        // If you store expenses as positive numbers, net is income - expenses.
-        // If you store expenses as negative numbers, net would be income + expenses.
+
+        if (start != null && end == null) end = start;
+        if (end != null && start == null) start = end;
+
+        if (start != null && end != null && start.isAfter(end)) {
+            LocalDate tmp = start;
+            start = end;
+            end = tmp;
+        }
+
+        BigDecimal totalIncome;
+        BigDecimal totalExpenses;
+        List<CategorySpendingResponse> spending;
+        List<RecentTransactionResponse> recent;
+
+        if (start != null && end != null) {
+            totalIncome = txRepo.sumAmountByTypeInRange(userId, TransactionType.INCOME, start, end);
+            totalExpenses = txRepo.sumAmountByTypeInRange(userId, TransactionType.EXPENSE, start, end);
+            spending = txRepo.spendingByCategoryInRange(userId, start, end);
+            recent = txRepo.recentForDashboardInRange(
+                    userId, start, end, PageRequest.of(0, Math.max(1, recentLimit))
+            );
+        } else {
+            totalIncome = txRepo.sumAmountByType(userId, TransactionType.INCOME);
+            totalExpenses = txRepo.sumAmountByType(userId, TransactionType.EXPENSE);
+            spending = txRepo.spendingByCategory(userId);
+            recent = txRepo.recentForDashboard(userId, PageRequest.of(0, Math.max(1, recentLimit)));
+        }
+
+        if (totalIncome == null) totalIncome = BigDecimal.ZERO;
+        if (totalExpenses == null) totalExpenses = BigDecimal.ZERO;
+
         BigDecimal netBalance = totalIncome.subtract(totalExpenses);
-
-        List<CategorySpendingResponse> spending = txRepo.spendingByCategory(userId, start, end);
-        List<RecentTransactionResponse> recent =
-                txRepo.recentForDashboard(userId, start, end, PageRequest.of(0, Math.max(1, recentLimit)));
 
         return new DashboardSummaryResponse(totalIncome, totalExpenses, netBalance, spending, recent);
     }

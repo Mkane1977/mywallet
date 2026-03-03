@@ -25,7 +25,7 @@ public class Transaction {
     @Column(nullable = false)
     private LocalDate date;
 
-    @Column(length = 120)
+    @Column(length = 120, nullable = true)
     private String description;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

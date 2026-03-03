@@ -5,76 +5,68 @@ export function Header() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const getLinkClass = (path: string) => {
-        const isActive = location.pathname === path;
+    // Hide header on login routes
+    const hideOnRoutes = ["/", "/login"];
+    if (hideOnRoutes.includes(location.pathname)) return null;
 
-        return `
-      relative px-1 py-2 text-sm font-semibold transition
-      ${
-            isActive
-                ? "text-green-900"
-                : "text-green-600 hover:text-green-800"
-        }
-    `;
-    };
+    const isActive = (path: string) => location.pathname === path;
 
-    const getIndicator = (path: string) => {
-        return location.pathname === path
-            ? "absolute left-0 -bottom-1 h-0.5 w-full bg-green-600 rounded"
-            : "";
+    const linkClass = (path: string) => {
+        const active = isActive(path);
+        return [
+            "relative inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold transition",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70",
+            active
+                ? "bg-white/15 text-white"
+                : "text-white/85 hover:text-white hover:bg-white/10",
+        ].join(" ");
     };
 
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         localStorage.removeItem("userId");
-
         navigate("/", { replace: true });
     };
 
     return (
-        <header className="bg-white shadow">
-            <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                    <img
-                        src={logo}
-                        alt="MyWallet Logo"
-                        className="w-10 h-10 object-contain"
-                    />
-                    <span className="text-xl font-bold text-green-900">
-            MyWallet
-          </span>
-                </div>
+        <header className="sticky top-0 z-50 bg-gradient-to-r from-green-800 to-green-700 shadow-md">
+            <div className="mx-auto max-w-7xl px-4">
+                <div className="flex h-25 items-center justify-between">
+                    {/* Left: Logo + Brand */}
+                    <div className="flex items-center gap-3">
+                        <img
+                            src={logo}
+                            alt="MyWallet Logo"
+                            className="h-20 w-20 rounded bg-white/90 p-1 object-contain"
+                        />
+                        <span className="text-xl font-bold tracking-tight text-white">
+              MyWallet
+            </span>
+                    </div>
 
-                <nav className="flex items-center gap-6">
-                    <div className="relative">
-                        <Link to="/dashboard" className={getLinkClass("/dashboard")}>
+                    {/* Right: Nav */}
+                    <nav className="flex items-center gap-2 sm:gap-3">
+                        <Link to="/dashboard" className={linkClass("/dashboard")}>
                             Dashboard
                         </Link>
-                        <span className={getIndicator("/dashboard")} />
-                    </div>
 
-                    <div className="relative">
-                        <Link to="/transactions" className={getLinkClass("/transactions")}>
+                        <Link to="/transactions" className={linkClass("/transactions")}>
                             Transactions
                         </Link>
-                        <span className={getIndicator("/transactions")} />
-                    </div>
 
-                    <div className="relative">
-                        <Link to="/categories" className={getLinkClass("/categories")}>
+                        <Link to="/categories" className={linkClass("/categories")}>
                             Categories
                         </Link>
-                        <span className={getIndicator("/categories")} />
-                    </div>
 
-                    <button
-                        onClick={handleLogout}
-                        className="ml-2 rounded bg-green-600 px-3 py-1 text-white hover:bg-green-700 transition"
-                    >
-                        Logout
-                    </button>
-                </nav>
+                        <button
+                            onClick={handleLogout}
+                            className="ml-2 inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-green-800 transition hover:bg-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                        >
+                            Logout
+                        </button>
+                    </nav>
+                </div>
             </div>
         </header>
     );
