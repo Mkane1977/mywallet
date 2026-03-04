@@ -184,7 +184,7 @@ export function SpendingByCategoryCard({
                     No expense data for this range.
                 </div>
             ) : (
-                <div className="h-[320px] w-full">
+                <div className="h-80 w-full">
                     {mode === "BAR" ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chart.rows} layout="vertical" margin={{ left: 8, right: 16 }}>

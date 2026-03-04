@@ -63,6 +63,63 @@ export async function confirmCsvImport(
     return res.json();
 }
 
+export async function fetchTransactionsPage(
+    userId: string,
+    filters?: TransactionFilters & {
+        page?: number;
+        size?: number;
+        sort?: string; // "date,desc"
+    }
+): Promise<{ content: Transaction[]; totalElements: number; totalPages: number; pageNumber: number }> {
+    requireUserId(userId);
+
+    const qs = new URLSearchParams();
+
+    const type = filters?.type;
+    if (type && type !== "ALL") qs.set("type", type);
+
+    const categoryId = filters?.categoryId;
+    if (categoryId && Number(categoryId) > 0) qs.set("categoryId", String(categoryId));
+
+    if (filters?.start) qs.set("start", filters.start);
+    if (filters?.end) qs.set("end", filters.end);
+
+    qs.set("page", String(filters?.page ?? 0));
+    qs.set("size", String(filters?.size ?? 25));
+    qs.set("sort", filters?.sort ?? "date,desc");
+
+    const url = `/api/transactions?${qs.toString()}`;
+
+    const res = await fetch(url, {
+        headers: { "X-USER-ID": userId },
+    });
+
+    if (!res.ok) throw new Error(await readErrorMessage(res));
+
+    const page = await res.json();
+
+    const raw: any[] = (page?.content ?? []) as any[];
+
+    const content: Transaction[] = raw.map((t) => ({
+        id: t.id,
+        date: t.date,
+        type: t.type,
+        amount: toNumber(t.amount),
+        description: t.description ?? null,
+        note: t.note ?? null,
+        categoryId: t.categoryId ?? t.category?.id ?? null,
+        categoryName: t.categoryName ?? t.category?.name ?? null,
+        category: t.category ?? null,
+    }));
+
+    return {
+        content,
+        totalElements: page?.totalElements ?? content.length,
+        totalPages: page?.totalPages ?? 1,
+        pageNumber: page?.number ?? 0,
+    };
+}
+
 
 export async function fetchCategories(userId: string): Promise<Category[]> {
     requireUserId(userId);
@@ -96,7 +153,12 @@ export async function fetchTransactions(userId: string, filters?: TransactionFil
     if (filters?.start) qs.set("start", filters.start);
     if (filters?.end) qs.set("end", filters.end);
 
-    const url = qs.toString() ? `/api/transactions?${qs.toString()}` : "/api/transactions";
+    // Enterprise defaults: first page, large size (so your existing UI still works)
+    qs.set("page", "0");
+    qs.set("size", "500");          // tweak if you want
+    qs.set("sort", "date,desc");    // server-side sorting
+
+    const url = `/api/transactions?${qs.toString()}`;
 
     const res = await fetch(url, {
         headers: { "X-USER-ID": userId },
@@ -104,7 +166,9 @@ export async function fetchTransactions(userId: string, filters?: TransactionFil
 
     if (!res.ok) throw new Error(await readErrorMessage(res));
 
-    const raw: any[] = await res.json();
+    // ✅ Spring Page shape: { content: [...], totalElements, totalPages, ... }
+    const page = await res.json();
+    const raw: any[] = (page?.content ?? []) as any[];
 
     const txs: Transaction[] = raw.map((t) => ({
         id: t.id,
@@ -118,10 +182,10 @@ export async function fetchTransactions(userId: string, filters?: TransactionFil
         category: t.category ?? null,
     }));
 
+    // No client sort needed because server sorts, but safe to keep:
     txs.sort((a, b) => (a.date < b.date ? 1 : -1));
     return txs;
 }
-
 export async function createTransaction(
     userId: string,
     payload: {

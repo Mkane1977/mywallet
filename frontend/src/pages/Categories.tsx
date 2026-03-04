@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useRef } from "react";
 
 type CategoryType = "INCOME" | "EXPENSE";
 
@@ -53,6 +54,7 @@ export function Categories() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const suggestionRef = useRef<HTMLDivElement | null>(null);
 
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [name, setName] = useState("");
@@ -93,6 +95,24 @@ export function Categories() {
     const actionBtn =
         "px-5 py-2 text-sm font-medium text-green-900 transition hover:bg-gray-300/70 disabled:cursor-not-allowed disabled:opacity-60";
     const divider = "w-px bg-gray-300";
+
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (
+                suggestionRef.current &&
+                !suggestionRef.current.contains(event.target as Node)
+            ) {
+                setNameFocused(false);
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
 
     useEffect(() => {
         const load = async () => {
@@ -401,14 +421,17 @@ export function Categories() {
                                         </label>
                                     </div>
 
-                                    <div className="relative mb-3">
+                                    <div ref={suggestionRef} className="relative mb-3">
                                         <input
                                             value={name}
-                                            onChange={(e) => setName(e.target.value)}
+                                            onChange={(e) => {
+                                                setName(e.target.value);
+                                                setNameFocused(true);
+                                            }}
                                             onFocus={() => setNameFocused(true)}
-                                            onBlur={() =>
-                                                setTimeout(() => setNameFocused(false), 120)
-                                            }
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Escape") setNameFocused(false);
+                                            }}
                                             placeholder="Category Name"
                                             className={inputBase}
                                         />
@@ -422,6 +445,7 @@ export function Categories() {
                                                         onMouseDown={(e) => {
                                                             e.preventDefault();
                                                             setName(s);
+                                                            setNameFocused(false);
                                                         }}
                                                         className="block w-full px-3 py-2 text-left text-sm text-green-900 hover:bg-gray-100"
                                                     >

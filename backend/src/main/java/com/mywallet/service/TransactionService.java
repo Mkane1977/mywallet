@@ -18,6 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
@@ -84,6 +87,7 @@ public class TransactionService {
         return txns.findAllByUserIdOrderByDateDesc(me.getId())
                 .stream().map(this::toResponse).toList();
     }
+
 
 
     public List<RecentTransactionResponse> recent(
@@ -471,6 +475,50 @@ public class TransactionService {
 
         return toResponse(t);
     }
+
+
+
+    public Page<TransactionResponse> listMinePage(
+            Long userId,
+            TransactionType type,
+            Long categoryId,
+            LocalDate start,
+            LocalDate end,
+            Pageable pageable
+    ) {
+        User me = currentUser.requireUser(userId);
+
+        // normalize single-sided range
+        if (start != null && end == null) end = start;
+        if (end != null && start == null) start = end;
+        boolean hasRange = (start != null && end != null);
+
+        boolean hasType = type != null;
+        boolean hasCategory = categoryId != null;
+
+        Page<Transaction> page;
+
+        if (hasCategory && hasType && hasRange) {
+            page = txns.findByUserIdAndCategoryIdAndTypeAndDateBetween(me.getId(), categoryId, type, start, end, pageable);
+        } else if (hasCategory && hasType) {
+            page = txns.findByUserIdAndCategoryIdAndType(me.getId(), categoryId, type, pageable);
+        } else if (hasCategory && hasRange) {
+            page = txns.findByUserIdAndCategoryIdAndDateBetween(me.getId(), categoryId, start, end, pageable);
+        } else if (hasCategory) {
+            page = txns.findByUserIdAndCategoryId(me.getId(), categoryId, pageable);
+        } else if (hasType && hasRange) {
+            page = txns.findByUserIdAndTypeAndDateBetween(me.getId(), type, start, end, pageable);
+        } else if (hasType) {
+            page = txns.findByUserIdAndType(me.getId(), type, pageable);
+        } else if (hasRange) {
+            page = txns.findByUserIdAndDateBetween(me.getId(), start, end, pageable);
+        } else {
+            page = txns.findByUserId(me.getId(), pageable);
+        }
+
+        return page.map(this::toResponse);
+    }
+
 
     @Transactional
     public void deleteMine(Long userId, Long id) {

@@ -5,9 +5,13 @@ import com.mywallet.dto.dashboard.RecentTransactionResponse;
 import com.mywallet.dto.transaction.*;
 import com.mywallet.service.TransactionService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -23,18 +27,9 @@ public class TransactionController {
         this.service = service;
     }
 
-    @GetMapping
-    public List<TransactionResponse> listMine(
-            @RequestHeader("X-USER-ID") Long userId,
-            @RequestParam(required = false) TransactionType type,
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
-    ) {
-        return service.listMine(userId, type, categoryId, start, end);
-    }
 
-    //  Data source for recent transactions  -  sortable/filterable server-side
+
+    //  Data source for recent transactions sortable/filterable server-side
     @GetMapping("/recent")
     public List<RecentTransactionResponse> recent(
             @RequestHeader("X-USER-ID") Long userId,
@@ -77,4 +72,19 @@ public class TransactionController {
         service.deleteMine(userId, id);
         return ResponseEntity.noContent().build();
     }
+
+
+
+    @GetMapping
+    public Page<TransactionResponse> listMine(
+            @RequestHeader("X-USER-ID") Long userId,
+            @RequestParam(required = false) TransactionType type,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            Pageable pageable
+    ) {
+        return service.listMinePage(userId, type, categoryId, start, end, pageable);
+    }
+
 }

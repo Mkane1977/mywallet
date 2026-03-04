@@ -25,14 +25,15 @@ public class Category {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
-            name = "user_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_category_user")
-    )
-    private User user;
+                name = "user_id",
+                nullable = false,
+                foreignKey = @ForeignKey(name = "fk_category_user")
+               )
 
+    private User user;
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
+
     @Size(max = 20)
     @NotNull
     @Column(name = "type", nullable = false, length = 20)
@@ -41,6 +42,9 @@ public class Category {
     @org.hibernate.annotations.ColumnDefault("false")
     @Column(name = "archived", nullable = false)
     private Boolean archived= false;
+
+
+
 
     public Category() {}
 
@@ -61,7 +65,6 @@ public class Category {
     public String getType() {
         return type;
     }
-
     public void setType(String type) {
         this.type = type;
     }
@@ -69,7 +72,6 @@ public class Category {
     public Boolean getArchived() {
         return archived;
     }
-
     public void setArchived(Boolean archived) {
         this.archived = archived;
     }
