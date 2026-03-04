@@ -57,23 +57,53 @@ backend/
 │   │   └── CorsConfig
 │   ├── controller
 │   │   ├── AuthController
-│   │   └── RootController
+|   |   ├── CategoryController
+│   │   ├── DashboardController
+│   │   ├── RootControler
+│   │   ├── TransactionController
+│   │   └── TransactionImportController
 │   ├── domain
+│   │   ├── Category
+│   │   ├── Transaction
+│   │   ├──TransactionType     
 │   │   └── User
 │   ├── dto
 │   │   └── auth
-│   │       ├── RegisterRequest
-│   │       ├── LoginRequest
-│   │       └── AuthResponse
+│   │   │   ├── RegisterRequest
+│   │   │   ├── LoginRequest
+│   │   │   └── AuthResponse
+        └──category
+│   │   │   ├── CategoryCreateRequest
+│   │   │   ├── CategoryResponse
+│       │   └── CategoryUpdateRequest
+│   │   └── dashboard
+│   │       ├── CategorySpendingResponse
+│   │       ├── DashboardSummaryResponse
+│   │       └── RecentTransactionResponse
+│   │   └── transaction
+│   │       │   └── importing
+│   │       │       ├── CsvImportConfirmRequest
+│   │       │       ├── CsvImportPreviewResponse
+│   │       │       └── CsvImportPreviewRow     
+│   │       ├── TransactionCreateRequest
+│   │       ├── TransactionImportResult
+│   │       ├── TransactionResponse           
+│   │       └── TransactionUpdateRequest
 │   ├── exception
+        ├── ApiException
 │   │   └── GlobalExceptionHandler
 │   ├── repository
+│   │   ├── CategoryRepository
+│   │   ├── TransactionRepository
 │   │   └── UserRepository
 │   ├── service
 │   │   ├── auth
 │   │   │   └── AuthService
-│   │   └── impl
-│   │       └── AuthServiceImpl
+│   │   │   └── AuthServiceImpl
+│   │   ├── CategoryService
+│   │   ├── CurrentUserService
+│   │   ├── DashboardService
+│   │   └── TransactionService
 │   └── AppApplication
 │
 ├── src/main/resources
@@ -202,4 +232,3 @@ docker compose up -d
 - Swagger API contract defined
 - DTOs + validation implemented
 - Auth-lite complete
-
