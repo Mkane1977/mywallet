@@ -27,7 +27,7 @@ This project follows clean layered architecture patterns used in real-world back
 
 ##  Architecture
 
-Frontend (planned)
+Frontend - React
 ↓
 Spring Boot REST API
 ↓
