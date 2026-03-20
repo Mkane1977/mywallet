@@ -1,7 +1,8 @@
+
+
 services:
   db:
     image: postgres:16
-    #container_name: mywallet-postgres
     environment:
       POSTGRES_DB: mywalletDB
       POSTGRES_USER: expense_user
@@ -11,7 +12,23 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mywalletDB
+      SPRING_DATASOURCE_USERNAME: expense_user
+      SPRING_DATASOURCE_PASSWORD: test
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
 volumes:
-        postgres_data:
-
-
+  postgres_data:
